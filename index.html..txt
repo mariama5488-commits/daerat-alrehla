@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دايرة الرحلة - 17 ذو القعدة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --desert-sand: #e8d5b5;
+            --deep-indigo: #1a2a3a;
+            --henna-red: #8b3a3a;
+            --royal-gold: #c5a059;
+            --ink-black: #0d1317;
+        }
+        body { 
+            font-family: 'Amiri', serif; 
+            background-color: #fcf9f2;
+            color: var(--deep-indigo);
+            background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');
+            overflow-x: hidden;
+        }
+        .font-tradition { font-family: 'Aref Ruqaa', serif; }
+        .font-cairo { font-family: 'Cairo', sans-serif; }
+        
+        .poetry-frame {
+            border-left: 3px solid var(--royal-gold);
+            border-right: 3px solid var(--royal-gold);
+            background: linear-gradient(90deg, rgba(197,160,89,0.05) 0%, rgba(197,160,89,0) 50%, rgba(197,160,89,0.05) 100%);
+        }
+
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(197, 160, 89, 0.3); 
+            border-radius: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar { 
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+            z-index: 1000; 
+            box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+        }
+        .sidebar.closed { transform: translateX(100%); }
+
+        .day-arch {
+            transition: all 0.3s ease;
+            min-width: 85px;
+            height: 115px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: white;
+            border-radius: 40px 40px 15px 15px;
+            border: 1px solid rgba(197, 160, 89, 0.15);
+        }
+
+        .active-day {
+            background-color: var(--deep-indigo);
+            color: var(--royal-gold);
+            transform: translateY(-8px);
+            border-color: var(--royal-gold);
+            box-shadow: 0 15px 30px rgba(26, 42, 58, 0.2);
+        }
+
+        .astrolabe-ring { 
+            transition: stroke-dashoffset 0.5s linear; 
+            stroke: var(--henna-red); 
+            stroke-linecap: round;
+        }
+
+        .focus-mode { background: var(--ink-black) !important; }
+        .focus-mode .glass-card { background: rgba(255,255,255,0.03); border-color: var(--royal-gold); color: #e8d5b5; }
+        .focus-mode p, .focus-mode h1, .focus-mode h2, .focus-mode h3, .focus-mode label { color: #e8d5b5 !important; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade { animation: fadeIn 0.8s ease forwards; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col transition-all duration-700">
+
+    <!-- الهيدر -->
+    <nav class="flex justify-between items-center px-6 md:px-16 py-6">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-[var(--deep-indigo)] flex items-center justify-center text-[var(--royal-gold)] text-xl font-tradition rounded-full border-2 border-[var(--royal-gold)] shadow-lg">د</div>
+            <div>
+                <h1 class="text-2xl font-tradition font-bold text-[var(--deep-indigo)] leading-none">دايرة الرحلة</h1>
+                <span class="text-[10px] font-cairo text-slate-400 tracking-widest uppercase">The Soul's Journal</span>
+            </div>
+        </div>
+        <button onclick="toggleSidebar()" class="p-3 hover:bg-[var(--royal-gold)] hover:text-white rounded-full transition-all bg-white shadow-sm border border-slate-100">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </button>
+    </nav>
+
+    <!-- بيت الشعر -->
+    <header class="max-w-4xl mx-auto w-full px-6 mb-8">
+        <div class="poetry-frame py-8 px-8 text-center animate-fade">
+            <p id="daily-verse" class="text-xl md:text-3xl font-amiri italic text-[var(--deep-indigo)] leading-relaxed">
+                "وما نيلُ المطالبِ بالتمنّي.. ولكن تُؤخذُ الدُنيا غِلابا"
+            </p>
+            <span id="verse-author" class="block mt-3 text-sm font-bold opacity-50">— أحمد شوقي</span>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar fixed top-0 right-0 h-full w-full max-w-[380px] bg-[#fdfaf5] p-10 closed overflow-y-auto shadow-2xl border-l border-[var(--royal-gold)]/20">
+        <div class="flex justify-between items-center mb-12">
+            <h2 class="text-3xl font-tradition text-[var(--deep-indigo)]">ديوان الإنجاز</h2>
+            <button onclick="toggleSidebar()" class="text-2xl opacity-20 hover:opacity-100">✕</button>
+        </div>
+        <div id="stats-bars" class="space-y-6"></div>
+    </aside>
+
+    <main class="flex-1 px-6 md:px-16 pb-16 max-w-[1440px] mx-auto w-full">
+        
+        <!-- التحكم بالشهور والتقويم -->
+        <section class="mb-12">
+            <div class="flex justify-between items-center mb-6 px-4">
+                <button onclick="changeMonth(-1)" class="p-2 hover:bg-[var(--royal-gold)]/10 rounded-full transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <div class="text-center">
+                    <h3 id="current-month-display" class="font-tradition text-3xl text-[var(--deep-indigo)]">مايو 2026</h3>
+                    <p id="hijri-month-display" class="text-sm font-amiri text-[var(--royal-gold)] mt-1 tracking-wide">ذو القعدة 1447 هـ</p>
+                </div>
+                <button onclick="changeMonth(1)" class="p-2 hover:bg-[var(--royal-gold)]/10 rounded-full transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+            <div class="flex gap-4 overflow-x-auto no-scrollbar py-4 px-2" id="calendar-rail"></div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            
+            <!-- بوح اليوم -->
+            <div class="lg:col-span-4 space-y-10">
+                <div class="glass-card p-10 shadow-lg border-t-8 border-[var(--royal-gold)] relative">
+                    <h3 class="font-tradition text-3xl mb-10 text-[var(--deep-indigo)] border-b pb-4">بوحُ اليوم</h3>
+                    <div class="space-y-8">
+                        <div>
+                            <label class="text-[10px] font-cairo font-bold text-slate-400 uppercase block mb-2">حاسة بإيه هنا والآن؟ (مشاعري)</label>
+                            <input type="text" id="ref-emotions" onchange="saveRef('emotions', this.value)" class="w-full bg-transparent border-b-2 border-slate-100 pb-3 outline-none font-amiri text-xl focus:border-[var(--henna-red)] transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-cairo font-bold text-slate-400 uppercase block mb-2">حاسة بإيه في جسمي؟</label>
+                            <input type="text" id="ref-body" onchange="saveRef('body', this.value)" class="w-full bg-transparent border-b-2 border-slate-100 pb-3 outline-none font-amiri text-xl focus:border-[var(--henna-red)] transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-cairo font-bold text-slate-400 uppercase block mb-2">امتنان</label>
+                            <input type="text" id="ref-gratitude" onchange="saveRef('gratitude', this.value)" class="w-full bg-transparent border-b-2 border-slate-100 pb-3 outline-none font-amiri text-xl focus:border-[var(--henna-red)] transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-cairo font-bold text-slate-400 uppercase block mb-2">فكرة اليوم</label>
+                            <input type="text" id="ref-idea" onchange="saveRef('idea', this.value)" class="w-full bg-transparent border-b-2 border-slate-100 pb-3 outline-none font-amiri text-xl focus:border-[var(--henna-red)] transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[var(--deep-indigo)] p-8 rounded-[2.5rem] text-white shadow-2xl">
+                    <h4 class="font-tradition text-2xl mb-2 text-[var(--royal-gold)]">وِرد الليلة</h4>
+                    <p class="text-sm font-amiri opacity-60 mb-8 italic">ثبات السعي.. هو سر الوصول</p>
+                    <button onclick="markHabit()" id="habit-check" class="w-full py-4 bg-[var(--henna-red)] rounded-2xl font-bold text-lg transition-all active:scale-95">ثبات السعي</button>
+                </div>
+            </div>
+
+            <!-- المهام والتايمر -->
+            <div class="lg:col-span-8 space-y-12">
+                <div class="flex flex-col md:flex-row justify-between items-end gap-8 bg-white/40 p-8 rounded-[3rem] border border-white/60">
+                    <div class="text-right">
+                        <h2 class="text-5xl font-tradition mb-4 text-[var(--deep-indigo)]" id="day-name">اليوم</h2>
+                        <div class="space-y-1">
+                            <span class="text-xl font-amiri text-slate-500 block" id="full-date">التاريخ الميلادي</span>
+                            <span class="text-lg font-amiri text-[var(--royal-gold)] block" id="hijri-date">التاريخ الهجري</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-[2.5rem] shadow-xl flex items-center gap-6 border border-slate-50">
+                        <div class="relative w-20 h-20">
+                            <svg class="w-full h-full transform -rotate-90">
+                                <circle cx="40" cy="40" r="36" stroke="#f1f5f9" stroke-width="4" fill="transparent" />
+                                <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="4" fill="transparent" stroke-dasharray="226" stroke-dashoffset="226" class="astrolabe-ring" id="astrolabe-progress" />
+                            </svg>
+                            <span class="absolute inset-0 flex items-center justify-center font-bold text-lg font-cairo" id="timer-text">25:00</span>
+                        </div>
+                        <div class="space-y-2">
+                            <button onclick="toggleTimer()" id="timer-btn" class="bg-[var(--deep-indigo)] text-[var(--royal-gold)] px-8 py-3 rounded-xl font-cairo font-bold hover:brightness-125 transition-all shadow-md">بدء الخلوة</button>
+                            <p class="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest">Focus Mode</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="tasks-grid"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal المهمة -->
+    <div id="task-modal" class="fixed inset-0 bg-black/40 backdrop-blur-md hidden z-[2000] flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 shadow-3xl relative animate-fade">
+            <button onclick="closeTask()" class="absolute top-8 left-8 text-2xl opacity-10 hover:opacity-100">✕</button>
+            <h3 id="task-title-modal" class="text-3xl font-tradition text-[var(--deep-indigo)] mb-8 text-center border-b pb-4"></h3>
+            <label class="text-[10px] font-cairo font-bold text-slate-400 uppercase block mb-2">ما توقفتِ عنده / ملاحظات السعي:</label>
+            <textarea id="task-note" class="w-full h-40 bg-slate-50 rounded-2xl p-6 outline-none font-amiri text-xl mb-8 border border-slate-100 focus:bg-white focus:ring-2 focus:ring-[var(--royal-gold)]/20 transition-all" placeholder="اكتبي هنا أين وصلتِ أو ما تودين تذكره للمرة القادمة..."></textarea>
+            <div class="flex gap-4">
+                <button onclick="finishTask()" class="flex-1 bg-[var(--deep-indigo)] text-[var(--royal-gold)] py-4 rounded-2xl font-bold text-xl hover:shadow-xl transition-all">حفظ وإتمام</button>
+                <button onclick="toggleGoldenTask()" id="golden-btn" class="w-16 rounded-2xl border-2 border-slate-100 text-2xl hover:bg-yellow-50 transition-all">⭐</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const referenceGregorianDate = new Date(2026, 4, 5); 
+
+        const taskConfig = [
+            { id: 'quran', cat: 'ديني', title: 'وِرد القرآن والأذكار', freq: 'daily' },
+            { id: 'esp', cat: 'تعلم', title: 'لسان الإسبان', freq: 'daily' },
+            { id: 'women', cat: 'ثقافة', title: 'طبائع النساء ومطالعة', freq: ['Saturday', 'Monday', 'Wednesday'] },
+            { id: 'ai', cat: 'مستقبل', title: 'مختبر الذكاء الاصطناعي', freq: ['Sunday', 'Thursday'] },
+            { id: 'icu', cat: 'طب', title: 'حالات الـ ICU واللوج بوك', freq: ['Tuesday'] },
+            { id: 'gym', cat: 'صحة', title: 'إعداد البدن', freq: ['Tuesday', 'Friday'] }
+        ];
+
+        const dayRules = { "Saturday": 2, "Sunday": 5, "Monday": 0, "Tuesday": 5, "Wednesday": 0, "Thursday": 5, "Friday": 5 };
+
+        let db = JSON.parse(localStorage.getItem('daerat_alrehla_db_v5')) || { done: {}, refs: {}, golden: {}, habits: {} };
+        
+        let selectedDate = new Date(2026, 4, 5); 
+        let viewDate = new Date(2026, 4, 5); 
+        
+        let timer = null;
+        let timeLeft = 1500;
+        let activeTask = null;
+
+        function save() { localStorage.setItem('daerat_alrehla_db_v5', JSON.stringify(db)); updateStats(); }
+        function getDateKey(d) { return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+
+        function calculateHijri(targetDate) {
+            try {
+                const formatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                });
+                return formatter.format(targetDate);
+            } catch(e) {
+                const diffTime = targetDate.getTime() - referenceGregorianDate.getTime();
+                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                let hDay = 17 + diffDays;
+                if (hDay > 30) { hDay -= 30; return `${hDay} ذو الحجة 1447 هـ`; }
+                if (hDay < 1) { hDay += 30; return `${hDay} شوال 1447 هـ`; }
+                return `${hDay} ذو القعدة 1447 هـ`;
+            }
+        }
+
+        function changeMonth(dir) {
+            viewDate.setMonth(viewDate.getMonth() + dir);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const rail = document.getElementById('calendar-rail');
+            const monthDisplay = document.getElementById('current-month-display');
+            const hijriMonthDisplay = document.getElementById('hijri-month-display');
+            if (!rail) return;
+
+            rail.innerHTML = '';
+            monthDisplay.innerText = viewDate.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+            
+            const middleDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 15);
+            const hFull = calculateHijri(middleDay);
+            const hParts = hFull.split(' ');
+            hijriMonthDisplay.innerText = hParts.length > 2 ? hParts.slice(1).join(' ') : "ذو القعدة 1447 هـ";
+
+            const year = viewDate.getFullYear();
+            const month = viewDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const d = new Date(year, month, i);
+                const key = getDateKey(d);
+                const isActive = key === getDateKey(selectedDate);
+                
+                const hijriFull = calculateHijri(d);
+                const hijriMatch = hijriFull.match(/\d+/);
+                const hijriDayNum = hijriMatch ? hijriMatch[0] : i;
+
+                const el = document.createElement('div');
+                el.className = `day-arch ${isActive ? 'active-day' : ''}`;
+                el.onclick = () => { 
+                    selectedDate = new Date(d); 
+                    renderCalendar(); 
+                    renderDay(); 
+                };
+                el.innerHTML = `
+                    <span class="text-[10px] font-bold mb-1 opacity-50">${d.toLocaleDateString('ar-EG', {weekday: 'short'})}</span>
+                    <span class="text-2xl font-bold font-tradition leading-none">${i}</span>
+                    <span class="text-[10px] mt-2 font-amiri text-[var(--royal-gold)] font-bold">${hijriDayNum}</span>
+                `;
+                rail.appendChild(el);
+                if (isActive) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }
+
+        function renderDay() {
+            const key = getDateKey(selectedDate);
+            const dayEn = selectedDate.toLocaleDateString('en-US', {weekday:'long'});
+            
+            document.getElementById('day-name').innerText = selectedDate.toLocaleDateString('ar-EG', {weekday:'long'});
+            document.getElementById('full-date').innerText = selectedDate.toLocaleDateString('ar-EG', {day:'numeric', month:'long', year:'numeric'});
+            document.getElementById('hijri-date').innerText = calculateHijri(selectedDate);
+
+            const r = db.refs[key] || {};
+            document.getElementById('ref-emotions').value = r.emotions || '';
+            document.getElementById('ref-body').value = r.body || '';
+            document.getElementById('ref-gratitude').value = r.gratitude || '';
+            document.getElementById('ref-idea').value = r.idea || '';
+            
+            document.getElementById('habit-check').innerText = db.habits[key] ? 'تم التثبيت ✨' : 'ثبات السعي';
+
+            const grid = document.getElementById('tasks-grid');
+            grid.innerHTML = '';
+            
+            if(dayRules[dayEn] === 0) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center animate-fade"><p class="font-amiri text-2xl text-slate-400 italic opacity-40">🏥 يوم الميدان.. كان الله في عونكِ.</p></div>`;
+                return;
+            }
+
+            taskConfig.forEach(t => {
+                if(t.freq === 'daily' || t.freq.includes(dayEn)) {
+                    const taskStatus = db.done[key + t.id];
+                    const isDone = !!taskStatus;
+                    const noteSnippet = taskStatus?.note ? taskStatus.note : "";
+                    const isGolden = db.golden[key] === t.id;
+                    
+                    const card = document.createElement('div');
+                    card.className = `glass-card p-6 cursor-pointer hover:shadow-xl transition-all relative overflow-hidden ${isDone ? 'opacity-60 bg-green-50/20' : ''} ${isGolden ? 'border-2 border-[var(--royal-gold)] ring-4 ring-[var(--royal-gold)]/5' : ''}`;
+                    card.onclick = () => openTask(t);
+                    card.innerHTML = `
+                        <div class="flex justify-between mb-2">
+                            <span class="text-[10px] font-cairo font-bold text-[var(--henna-red)] opacity-60">${t.cat}</span>
+                            ${isGolden ? '<span>⭐</span>' : ''}
+                        </div>
+                        <h4 class="text-xl font-tradition text-[var(--deep-indigo)] mb-2">${t.title}</h4>
+                        ${noteSnippet ? `<div class="bg-[var(--royal-gold)]/5 p-2 rounded-lg border-r-2 border-[var(--royal-gold)] mt-2"><p class="text-[11px] text-slate-500 font-amiri leading-tight line-clamp-2 italic"><span class="font-bold">توقفتِ عند:</span> ${noteSnippet}</p></div>` : ''}
+                        <div class="flex justify-end mt-4"><div class="w-7 h-7 rounded-full border-2 border-slate-100 flex items-center justify-center transition-all ${isDone ? 'bg-green-500 border-none text-white scale-110' : ''}">${isDone ? '✓' : ''}</div></div>
+                    `;
+                    grid.appendChild(card);
+                }
+            });
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('closed'); }
+        function openTask(t) { activeTask = t; const key = getDateKey(selectedDate); document.getElementById('task-title-modal').innerText = t.title; document.getElementById('task-note').value = db.done[key + t.id]?.note || ''; document.getElementById('task-modal').classList.remove('hidden'); }
+        function closeTask() { document.getElementById('task-modal').classList.add('hidden'); }
+        function toggleGoldenTask() { const key = getDateKey(selectedDate); db.golden[key] = (db.golden[key] === activeTask.id) ? null : activeTask.id; save(); renderDay(); closeTask(); }
+        function finishTask() { const key = getDateKey(selectedDate); db.done[key + activeTask.id] = { note: document.getElementById('task-note').value }; save(); closeTask(); renderDay(); }
+        function saveRef(field, val) { const key = getDateKey(selectedDate); if(!db.refs[key]) db.refs[key] = {}; db.refs[key][field] = val; save(); }
+        function markHabit() { const key = getDateKey(selectedDate); db.habits[key] = !db.habits[key]; save(); renderDay(); }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-btn');
+            const ring = document.getElementById('astrolabe-progress');
+            if(timer) { clearInterval(timer); timer = null; btn.innerText = 'استئناف'; document.body.classList.remove('focus-mode'); } 
+            else {
+                document.body.classList.add('focus-mode'); btn.innerText = 'إيقاف';
+                timer = setInterval(() => {
+                    if(timeLeft > 0) { timeLeft--; document.getElementById('timer-text').innerText = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2, '0')}`; ring.style.strokeDashoffset = 226 - (timeLeft/1500)*226; } 
+                    else { clearInterval(timer); alert('انتهت الخلوة.'); document.body.classList.remove('focus-mode'); btn.innerText = 'بدء'; timeLeft = 1500; }
+                }, 1000);
+            }
+        }
+
+        function updateStats() {
+            const container = document.getElementById('stats-bars');
+            if (!container) return;
+            const stats = [{ label: 'العلوم الطبية', color: 'var(--henna-red)', val: 65 }, { label: 'الذكاء الاصطناعي', color: 'var(--deep-indigo)', val: 40 }, { label: 'اللغة الإسبانية', color: 'var(--royal-gold)', val: 80 }];
+            container.innerHTML = '';
+            stats.forEach(s => { container.innerHTML += `<div class="space-y-2"><div class="flex justify-between text-[11px] font-bold"><span>${s.label}</span><span>${s.val}%</span></div><div class="w-full h-1 bg-slate-100 rounded-full overflow-hidden"><div class="h-full" style="width: ${s.val}%; background-color: ${s.color}"></div></div></div>`; });
+        }
+
+        window.onload = () => { renderCalendar(); renderDay(); updateStats(); };
+    </script>
+</body>
+</html>
